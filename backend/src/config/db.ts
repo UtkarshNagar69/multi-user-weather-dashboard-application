@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-// Cache the connection for serverless environments (Vercel)
+// Cache the connection to avoid reconnecting on every request
 let isConnected = false;
 
 const connectDB = async (): Promise<void> => {

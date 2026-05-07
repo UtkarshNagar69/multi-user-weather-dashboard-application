@@ -19,13 +19,19 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// Ensure DB is connected before handling requests
-app.use(async (_req, _res, next) => {
+// Health check (no DB needed)
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Ensure DB is connected before handling API requests
+app.use('/api', async (_req, res, next) => {
   try {
     await connectDB();
     next();
   } catch (err) {
-    next(err);
+    console.error('DB middleware error:', err);
+    res.status(503).json({ message: 'Database connection failed.' });
   }
 });
 
@@ -33,11 +39,6 @@ app.use(async (_req, _res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/ai', aiRoutes);
-
-// Health check
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
 
 // For local development
 if (process.env.NODE_ENV !== 'production') {
